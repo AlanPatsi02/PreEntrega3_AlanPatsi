@@ -1,56 +1,57 @@
-    alert("¡Bienvenido, con este simulador vas a poder calcular tus gastos!");
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("gastosForm");
+    const resultadosDiv = document.getElementById("resultados");
+    const errorDiv = document.getElementById("error");
+    const borrarBtn = document.getElementById("borrarDatos");
 
-    let sueldo = parseFloat(prompt("¿Cuál es tu sueldo mensual?"));
-while (isNaN(sueldo) || sueldo <= 0) {
-    alert("Por favor, ingresa un sueldo válido.");
-    sueldo = parseFloat(prompt("¿Cuál es tu sueldo mensual?"));
-}
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
 
-let alquiler = parseFloat(prompt("¿Cuánto pagas de alquiler?"));
-while (isNaN(alquiler) || alquiler < 0) {
-    alert("Por favor, ingresa un monto de alquiler válido.");
-    alquiler = parseFloat(prompt("¿Cuánto pagas de alquiler?"));
-}
+        errorDiv.textContent = "";
 
-let comida = parseFloat(prompt("¿Cuánto gastas en alimentos?"));
-while (isNaN(comida) || comida < 0) {
-    alert("Por favor, ingresa un gasto de comida válido.");
-    comida = parseFloat(prompt("¿Cuánto gastas en alimentos?"));
-}
+        const sueldo = parseFloat(document.getElementById("sueldo").value) ?? 0;
+        const alquiler = parseFloat(document.getElementById("alquiler").value) ?? 0;
+        const comida = parseFloat(document.getElementById("comida").value) ?? 0;
+        const transporte = parseFloat(document.getElementById("transporte").value) ?? 0;
 
-let transporte = parseFloat(prompt("¿Cuánto gastas en transporte?"));
-while (isNaN(transporte) || transporte < 0) {
-    alert("Por favor, ingresa un gasto de transporte válido.");
-    transporte = parseFloat(prompt("¿Cuánto gastas en transporte?"));
-}
-    // Usamos array
-    const gastos = [
-        { descripcion: "alquiler", monto: alquiler },
-        { descripcion: "comida", monto: comida },
-        { descripcion: "transporte", monto: transporte },
-    ];
-    
-    // calculamos gastos totales
-    function calcularTotalGastos() {
-        return gastos.reduce((total, gasto) => total + gasto.monto, 0);
-    }
-    
-    // calculamos gastos restante
-    function calcularSaldoRestante(sueldo, totalGastos) {
-        return sueldo - totalGastos;
-    }
-    
-    // mostramos los resultados
-    function mostrarResultados() {
-        const totalGastos = calcularTotalGastos();
-        const saldoRestante = calcularSaldoRestante(sueldo, totalGastos);
+        if (sueldo <= 0 || isNaN(sueldo)) {
+            mostrarError("Por favor, ingresa un sueldo válido.");
+            return;
+        }
+
+        if (alquiler < 0 || comida < 0 || transporte < 0) {
+            mostrarError("Los gastos no pueden ser negativos.");
+            return;
+        }
+
+        const totalGastos = alquiler + comida + transporte;
+        const saldoRestante = sueldo - totalGastos;
+
+        guardarEnLocalStorage({ sueldo, alquiler, comida, transporte });
+
+        mostrarResultados(totalGastos, saldoRestante);
+    });
+
+    borrarBtn.addEventListener("click", () => {
         
-        console.log("Resumen de gastos:");
-        gastos.forEach(gasto => console.log(`Categoría: ${gasto.descripcion}, Monto: ${gasto.monto}`));
-        console.log(`Total de gastos: ${totalGastos}`);
-        console.log(`Saldo restante: ${saldoRestante}`);
+        form.reset();
         
-        alert(`Resumen de gastos:\n${gastos.map(gasto => `Categoría: ${gasto.descripcion}, Monto: ${gasto.monto}`).join('\n')}\n\nTotal de gastos: ${totalGastos}\nSaldo restante: ${saldoRestante}`);
+        resultadosDiv.innerHTML = "";
+        errorDiv.textContent = "";
+    });
+
+    function mostrarResultados(totalGastos, saldoRestante) {
+        resultadosDiv.innerHTML = `
+            <p>Total de gastos: $${totalGastos}</p>
+            <p>Saldo restante: $${saldoRestante}</p>
+        `;
     }
 
-    mostrarResultados();
+    function mostrarError(mensaje) {
+        errorDiv.textContent = mensaje;
+    }
+
+    function guardarEnLocalStorage(datos) {
+        localStorage.setItem("simuladorGastos", JSON.stringify(datos));
+    }
+});
